@@ -24,9 +24,11 @@ npm run cmd
 ```
 
 #### Commands
-- **ls** - lists the directory content of the current path
-- **cd** - travels to the given path
-- **del** - delets a file on the remote server, relative to the current path
+- **ls** - 列出当前路径的目录内容
+- **cd** - 到达给定的路径
+- **file** - 从本地文件系统上传文件到远程服务器
+- **dir** - 从本地文件系统上传文件夹到远程服务器
+- **del** - 删除远程服务器上相对于当前路径的文件
 
 #### Correct Example
 ```
