@@ -1,7 +1,7 @@
 const EasyFtp = require('easy-ftp');
 const readline = require('readline');
 const fs = require('fs');
-const Path = require('path');
+const glob = require("glob")
 const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout
@@ -112,13 +112,20 @@ const cd = async () => {
 
 const uploadFile = async () => {
     rl.question('RELATIVE (!!) File Destination path? > ' + path, res => {
-        ftp.upload(res, path, function(err){
-            if(err){
-                console.log(err);
+        glob(res, function (er, files) {
+            if (er) {
+                console.log(er);
+                return;
             }
-
-            console.log('file uploaded.');
-            askAction();
+            
+            ftp.upload(files, path, (err) => {
+                if(err){
+                    console.log(err);
+                }
+    
+                console.log('file uploaded.');
+                askAction();
+            });
         });
     });
 };
@@ -132,7 +139,7 @@ const addFileToOSSSync = async (res, dirPath) => {
         
         if(fileType.isFile()){
             ftp.upload(srcPath, dirPath);
-        } else if(fileType.isDirectory() ){
+        } else if(fileType.isDirectory()){
             ftp.mkdir(doc, dirPath);
             addFileToOSSSync(srcPath, dirPath);
         }
@@ -141,17 +148,33 @@ const addFileToOSSSync = async (res, dirPath) => {
 
 const uploadDir = async () => {
     rl.question('RELATIVE (!!) Directory Destination path? > ' + path, (res) => {
-        let pathRes = res.split('\\')[res.split('\\').length - 1];
-
-        ftp.mkdir(`${path}/${pathRes}`, async (err) => {
-            if(err){
-                reject(err);
+        glob(res, (er, files) => {
+            if (er) {
+                console.log(er);
+                askAction();
+                return;
             }
-            
-            await addFileToOSSSync(res, `${path}/${pathRes}`);
 
-            console.log('Directory uploaded.');
-            askAction();
+            files.forEach (file => {
+                if (!fs.statSync(file).isDirectory()) {
+                    return;
+                }
+
+                let filePath = file.split('/');
+                let pathRes = filePath[filePath.length - 1];
+                let curPath = `${path}/${pathRes}`;
+                
+                ftp.mkdir(curPath, async (err) => {
+                    if(err){
+                        console.log(err);
+                    }
+                    
+                    await addFileToOSSSync(file, curPath);
+    
+                    console.log('Directory uploaded.');
+                    askAction();
+                });
+            })
         });
     });
 };

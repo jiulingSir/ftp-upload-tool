@@ -16,7 +16,7 @@ node server.js
 
 ## 命令行
 
-#### 功能：通过命令行方式实现展示、到达指定路径、上传文件与文件夹、删除等功能。
+#### 功能：通过命令行方式实现展示、到达指定路径、上传文件与文件夹(支持glob方式上传)、删除等功能。
 
 #### 运行命令
 ```javascript
@@ -24,11 +24,9 @@ npm run cmd
 ```
 
 #### Commands
-- **ls** - 列出当前路径的目录内容
-- **cd** - 到达给定的路径
-- **file** - 从本地文件系统上传文件到远程服务器
-- **dir** - 从本地文件系统上传文件夹到远程服务器
-- **del** - 删除远程服务器上相对于当前路径的文件
+- **ls** - lists the directory content of the current path
+- **cd** - travels to the given path
+- **del** - delets a file on the remote server, relative to the current path
 
 #### Correct Example
 ```
@@ -38,7 +36,17 @@ Host? > 47.107.157.97
 Port? > 21
 User? > ftp
 Password? (Warning, visible in console) > Admin@123
+Action? (ls|cd|file|dir|del) > file
+// 支持glob上传单/多文件 C:\Users\sangfor\AppData\Local\Temp\xyx\mult\*.jpg
+RELATIVE (!!) File Destination path? > C:\Users\sangfor\AppData\Local\Temp\xyx\mult\7.jpg
+file uploaded.
 Action? (ls|cd|file|dir|del) > dir
+// 支持glob上传单/多文件夹 C:\Users\sangfor\AppData\Local\Temp\xyx\222\*
 RELATIVE (!!) Directory Destination path? > C:\Users\sangfor\AppData\Local\Temp\xyx\222
 Directory uploaded.
+// 删除文件与文件夹
+Action? (ls|cd|file|dir|del) > del
+File name? > /xyx/111/1111.jpg
+delete success.
+
 ```
