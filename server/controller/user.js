@@ -6,6 +6,10 @@ const host = '47.107.157.97';
 const user = 'ftp';
 const password = 'Admin@123';
 const EasyFtp = require('easy-ftp');
+const { createFtp, showList, uploadFiles, uploadDirectory } = require('../common/index.js');
+const glob = require("glob");
+
+let ftp = new EasyFtp();
 
 //登录
 const Login = async ( ctx ) => {
@@ -17,15 +21,14 @@ const Login = async ( ctx ) => {
         host: ctx.request.body.host,
         username: username
     };
-
-    // askLoginData(bodyInfo.type, bodyInfo.port);
-    global.ftp = new EasyFtp({
+    
+    await createFtp({
         host: host,
-        port: bodyInfo.port,
+        port: port,
         username: user,
         password: password,
-        type : bodyInfo.type
-    });	
+        type : remoteSystem
+    });
 
     config = {
         ...bodyInfo,
@@ -42,15 +45,8 @@ const Login = async ( ctx ) => {
 
 const Upload =  async ( ctx ) => {
     let files = ctx.request.files.file;
-    let uploadRes = await new Promise((resolve, reject) => {
-        ftp.upload(files.path, files.dir, function(err, doc){
-            if(err){
-                reject(err);
-            }
-            resolve(doc);
-        })
-    });
     
+    await uploadFiles(files);
     ctx.status = 200;
     ctx.body = {
         success: true,
@@ -62,18 +58,8 @@ const Upload =  async ( ctx ) => {
 const UploadDir =  async ( ctx ) => {
     let files = ctx.request.files.file;
     let filePath = files.name.split('/');
-    let uploadRes = await new Promise((resolve, reject) => {
-        ftp.mkdir(`${files.dir}/${filePath[0]}`, function(err){
-            if(err){
-                reject(err);
-            }
-            ftp.upload(files.path, `${files.dir}/${filePath[0]}`, function(err, doc){
-                if(err){
-                    reject(err);
-                }
-                resolve(doc);
-            })
-        });
+    await uploadDirectory({
+        path: filePath
     });
     
     ctx.status = 200;
@@ -85,20 +71,13 @@ const UploadDir =  async ( ctx ) => {
 };
 
 const List =  async ( ctx ) => {
-    let listRes = await new Promise((resolve, reject) => {
-        ftp.lsAll('/', function(err, list){
-            if(err){
-                reject(err);
-            }
-            resolve(list);
-        })
+    showList(ftp, () => {
+        ctx.status = 200;
+        ctx.body = {
+            success: true,
+            listRes: listRes
+        };
     });
-
-    ctx.status = 200;
-    ctx.body = {
-        success: true,
-        listRes: listRes
-    };
 };
 
 module.exports = {
