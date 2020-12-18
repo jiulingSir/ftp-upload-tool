@@ -34,9 +34,9 @@ const askLoginData = async (remoteSystem) => {
                     ftp = await createFtp({
                         host: host,
                         port: port,
-                        username: user,
+                        user: user,
                         password: password,
-                        type : remoteSystem
+                        remoteSystem : remoteSystem
                     });
                     
                     console.log('Path: /');
@@ -86,7 +86,7 @@ const cd = async () => {
 
 const uploadFile = async () => {
     rl.question('RELATIVE (!!) File Destination path? > ' + path, async(res) => {
-        await uploadFiles(ftp, {
+        await uploadFiles({
             res,
             path,
             remoteType

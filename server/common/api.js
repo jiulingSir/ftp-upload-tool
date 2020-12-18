@@ -4,6 +4,14 @@ let ftp = new EasyFtp();
 const connectTask = async ( opt ) => {
     const {host, port, user, password, remoteSystem} = opt;
 
+    if (!host || !port || !user || !password || !remoteSystem) {
+        return {
+            code: 400,
+            error: 'Bad Request',
+            message: 'User validation failed'
+        }
+    }
+
     await ftp.connect({
         host: host,
         port: port,
@@ -30,12 +38,12 @@ const getFileTask =  async () => {
 };
 
 const deleteTask = async ( opt ) => {
-    await new Promise((resolve, reject) => {
+    return await new Promise((resolve, reject) => {
         ftp.rm(opt.absolutePath, function(err){
             if(err){
                 return reject(err);
             }
-            resolve();
+            resolve(true);
         });
     });
 };
@@ -49,8 +57,8 @@ const uploadFileTask = async (opt) => {
                 reject(err);
                 return;
             }
-    
-            resolve();
+            
+            resolve(true);
         });
     });
 };
@@ -59,13 +67,12 @@ const uploadFileTask = async (opt) => {
 // 上传文件夹任务
 const uploadDirTask = async (opt) => {
     await new Promise((resolve, reject) => {
-        ftp.mkdir(opt.file, opt.path, (err) => {
+        ftp.mkdir(opt.file, (err) => {
             if(err){
                 reject(err);
                 return;
             }
-    
-            resolve();
+            resolve(true);
         });
     });
 };

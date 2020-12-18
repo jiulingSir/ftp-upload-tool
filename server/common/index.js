@@ -1,6 +1,7 @@
 const fs = require('fs');
 const glob = require("glob");
 const { connectTask, getFileTask, deleteTask, uploadFileTask, uploadDirTask } = require('./api');
+const path = require('path');
 
 const getGlobInfo = async (opt) => {
     let globRes = await new Promise((resolve, reject) => {
@@ -8,25 +9,8 @@ const getGlobInfo = async (opt) => {
             if (err) {
                 return reject(err);
             }
-            
-            let directorys = files.filter(file => fs.statSync(file).isDirectory());
-            
-            if (!directorys.length) {
-                resolve(files);
-            } else {
-                let newDirInfo = directorys.map(item => {
-                    let filePath = item.split('/');
-                    let pathRes = filePath[filePath.length - 1];
-                    let curPath = `${opt.path}/${pathRes}`;
-            
-                    return {
-                        file: item,
-                        curPath
-                    }
-                });
-
-                resolve(newDirInfo);
-            }
+        
+            resolve(files);
         });
     });
 
@@ -44,26 +28,27 @@ const parseUpload = async (opt) => {
     return files;
 };
 
-const addFileToOSSSync = async (res, dirPath) => {
-    let docs = fs.readdirSync(res);
+const addFileToOSSSync = async (data, dirPath) => {
+    if (!Array.isArray(data)) {
+        return;
+    }
     
-    docs.forEach(async (doc) => {
-        let srcPath = res + '/' + doc;
-        let fileType = fs.statSync(srcPath);
+    data.forEach(async (doc) => {
+        let fileType = fs.statSync(doc);
         
         if(fileType.isFile()){
-            parseUpload({
-                files: srcPath,
-                path: dirPath
+            await uploadFtpFile({
+                files: [{local: doc, remote: dirPath}]
             });
         } else if(fileType.isDirectory()){
-            await uploadDirTask({
-                ftp,
-                file: doc,
-                path: dirPath
+            let data = fs.readdirSync(doc).map(item => {
+                return `${doc}/${item}`;
             });
 
-            addFileToOSSSync(srcPath, dirPath);
+            await uploadDirTask({
+                file: `${dirPath}${path.basename(doc)}`
+            });
+            addFileToOSSSync(data, dirPath);
         }
     });
 };
@@ -104,7 +89,7 @@ const UPLOAD_TYPE = {
 };
 
 // ---------
-const uploadFiles = async ( ftp, opt ) => {
+const uploadFiles = async ( opt ) => {
     let curGlobInfo = await getGlobInfo({
         res: opt.res
     });
@@ -125,12 +110,8 @@ const uploadDirectory = async ( opt ) => {
         res: opt.res,
         path: opt.path
     });
-
-    await uploadDirTask({
-        path: data.curPath
-    });
-        
-    await addFileToOSSSync(data.file, data.curPath);
+    
+    await addFileToOSSSync(data, opt.path);
 };
 
 module.exports = {
