@@ -15,22 +15,6 @@ describe('Ftp functional tests', () => {
         
             expect(response).toBeInstanceOf(EasyFtp);
         });
-
-        it('Should return a validation error when a field is missing', async () => {
-            const user = {
-                host: '47.107.157.97',
-                port: 21,
-                password: 'Admin@123',
-                remoteSystem: 'ftp'
-            };
-            const response = await connectTask(user);
-            
-            expect(response).toEqual({
-                code: 400,
-                error: 'Bad Request',
-                message: 'User validation failed'
-            });
-        });
     });
 
     describe('When getting file info', () => {
@@ -63,15 +47,15 @@ describe('Ftp functional tests', () => {
         });
     });
 
-    // describe('When upload directrory', () => {
-    //     it('Should return the upload directrory information', async () => {
-    //         const opt = {
-    //             files: [ { local: 'D:/xyx/111/1111.jpg', remote: '/xyx/' } ]
-    //         };
-    //         const uploadRes = await uploadDirTask(opt);
+    describe('When upload directrory', () => {
+        it('Should return the upload directrory information', async () => {
+            const opt = {
+                files: [ { local: 'D:/xyx/111/1111.jpg', remote: '/xyx/' } ]
+            };
+            const uploadRes = await uploadDirTask(opt);
             
-    //         expect(uploadRes).toBe(true);
-    //     });
-    // });
+            expect(uploadRes).toBe(true);
+        });
+    });
 
 });

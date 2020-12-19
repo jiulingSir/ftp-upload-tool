@@ -4,10 +4,11 @@ const rl = readline.createInterface({
   output: process.stdout
 });
 const { createFtp, showList, uploadFiles, uploadDirectory, deleteFile } = require('../common/index.js');
-
-let ftp = null;
+const log4js = require('log4js');
+let logger = log4js.getLogger('cmd-cli');
 let path = '/';
 let remoteType = '';
+logger.level = 'info';
 
 const start = async () => {
     askFtpOrSftp();
@@ -18,7 +19,7 @@ const askFtpOrSftp = async () => {
         if (res == 'ftp' || res == 'sftp') {
             askLoginData(res);
         } else {
-            console.log("Invalid remote system.");
+            logger.error("Invalid remote system.");
             askFtpOrSftp();
         }
     });
@@ -31,7 +32,7 @@ const askLoginData = async (remoteSystem) => {
                 rl.question('Password? (Warning, visible in console) > ', async (password) => {
                     remoteType = remoteSystem;
 
-                    ftp = await createFtp({
+                    await createFtp({
                         host: host,
                         port: port,
                         user: user,
@@ -39,7 +40,7 @@ const askLoginData = async (remoteSystem) => {
                         remoteSystem : remoteSystem
                     });
                     
-                    console.log('Path: /');
+                    logger.info('Path: /');
                     askAction();
                 });
             });
@@ -61,15 +62,15 @@ const askAction = async () => {
             return ACTION_TYPE[res]();
         }
 
-        console.log("UNKNOWN ACTION!");
+        logger.error("UNKNOWN ACTION!");
         askAction();
     });
 };
 
 const ls = async () => {
-    let data = await showList(ftp);
+    let data = await showList();
     
-    console.log(data);
+    logger.info(data);
     askAction();
 };
 
@@ -92,7 +93,7 @@ const uploadFile = async () => {
             remoteType
         });
 
-        console.log('file uploaded.');
+        logger.info('file uploaded.');
         askAction();
     });
 };
@@ -101,9 +102,11 @@ const uploadDir = async () => {
     rl.question('RELATIVE (!!) Directory Destination path? > ' + path, async (res) => {
         await uploadDirectory({
             res,
-            path
+            path,
+            remoteType
         });
-        console.log('Directory uploaded.');
+
+        logger.info('Directory uploaded.');
         askAction();
     });
 };
@@ -116,7 +119,7 @@ const del = async () => {
             absolutePath
         });
 
-        console.log('delete success.');
+        logger.info('delete success.');
         askAction();
     });
 };
