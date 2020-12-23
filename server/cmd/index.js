@@ -3,9 +3,8 @@ const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout
 });
-const { createFtp, showList, uploadFiles, uploadDirectory, deleteFile } = require('../common/index.js');
-const log4js = require('log4js');
-let logger = log4js.getLogger('cmd-cli');
+const { createFtp, showList, uploadFiles, uploadDirectory, deleteFile } = require('./api.js');
+const logger = require('../../log/index')('cmd-cli');
 let path = '/';
 let remoteType = '';
 logger.level = 'info';
@@ -89,8 +88,7 @@ const uploadFile = async () => {
     rl.question('RELATIVE (!!) File Destination path? > ' + path, async(res) => {
         await uploadFiles({
             res,
-            path,
-            remoteType
+            path
         });
 
         logger.info('file uploaded.');
