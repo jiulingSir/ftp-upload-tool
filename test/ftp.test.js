@@ -1,60 +1,103 @@
-const { connectTask, getFileTask, deleteTask, uploadFileTask, uploadDirTask } = require('../server/common/api.js');
 const EasyFtp = require('easy-ftp');
 
-describe('Ftp functional tests', () => {
-    describe('When connect server', () => {
-        it('should successfully connect server with encrypted info', async () => {
-            const user = {
-                host: '47.107.157.97',
-                user: 'ftp',
-                port: 21,
-                password: 'Admin@123',
-                remoteSystem: 'ftp'
-            };
-            const response = await connectTask(user);
+describe('Ftp server tests', () => {
+    const user = {
+        host: '47.107.157.97',
+        user: 'ftp',
+        port: 21,
+        password: 'Admin@123',
+        remoteSystem: 'ftp'
+    };
+    const path = '/xyx/111';
+    const dir = '/xyx/333';
+    const files = '/xyx/D:/xyx/111.jpg';
+
+    describe('connect server', () => {
+        it('should connect server successful', (done) => {
+            const response = new EasyFtp(user);
         
             expect(response).toBeInstanceOf(EasyFtp);
+            done();
         });
     });
 
-    describe('When getting file info', () => {
-        it('Should return the all file information', async () => {
-            const listRes = await getFileTask();
+    describe('show list', () => {
+        it('should return list', async (done) => {
+            const ftp = new EasyFtp(user);
             
-            expect(listRes).toBeInstanceOf(Array);
-          });
-    });
-
-    describe('When delete file with file path', () => {
-        it('Should return success infomation', async () => {
-            const pathInfo = {
-                absolutePath: '/xyx/1111.jpg'
-            };
-            const listRes = await deleteTask(pathInfo);
+            const res = await new Promise((resolve, reject) => {
+                ftp.lsAll('/', (err, list) => {
+                    if(err){
+                        return reject(err);
+                    }
+    
+                    resolve(list);
+                });
+            })
+        
+            expect(res).toBeInstanceOf(Array);
             
-            expect(listRes).toBe(true);
+            done();
         });
     });
 
-    describe('When upload file', () => {
-        it('Should return the upload file information', async () => {
-            const opt = {
-                files: [ { local: 'D:/xyx/111/1111.jpg', remote: '/xyx/' } ]
-            };
-            const uploadRes = await uploadFileTask(opt);
+    describe('delete file', () => {
+        it('should delete successful with specified path', async (done) => {
+            const ftp = new EasyFtp(user);
             
-            expect(uploadRes).toBe(true);
+            const res = await new Promise((resolve, reject) => {
+                ftp.lsAll(path, (err) => {
+                    if(err){
+                        return reject(err);
+                    }
+    
+                    resolve(true);
+                });
+            });
+        
+            expect(res).toBe(true);
+            
+            done();
         });
     });
 
-    describe('When upload directrory', () => {
-        it('Should return the upload directrory information', async () => {
-            const opt = {
-                files: [ { local: 'D:/xyx/111/1111.jpg', remote: '/xyx/' } ]
-            };
-            const uploadRes = await uploadDirTask(opt);
+    describe('mkdir directory', () => {
+        it('mkdir directory successful with specified path', async (done) => {
+            const ftp = new EasyFtp(user);
             
-            expect(uploadRes).toBe(true);
+            let res = await new Promise((resolve, reject) => {
+                ftp.mkdir(dir, (err) => {
+                    if(err){
+                        return reject(err);
+                    }
+
+                    resolve(true);
+                });
+            });
+        
+            expect(res).toBe(true);
+            
+            done();
+        });
+    });
+
+    describe('upload file', () => {
+        it('upload file successful with specified path', async (done) => {
+            const ftp = new EasyFtp(user);
+            
+            let res = await new Promise((resolve, reject) => {
+                ftp.upload(files, (err) => {
+                    if(err){
+                        return reject(err);
+                    }
+                    
+                    resolve(true);
+                });
+            });
+        
+            expect(res).toBe(true);
+            
+            done();
         });
     });
 
