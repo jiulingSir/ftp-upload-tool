@@ -8,33 +8,32 @@ describe('Ftp server tests', () => {
         password: 'Admin@123',
         remoteSystem: 'ftp'
     };
-    let ftp = null;
-    const path = '/xyx/111';
-    const dir = '/xyx/333';
-    const files = [{local: 'C:\\Users\\Administrator\\Desktop\\xyx\\2.jpg', remote: '/xyx'}];
+    let ftp = new EasyFtp();
 
     describe('connect server', () => {
-        it('should connect server successful', (done) => {
-            ftp = new EasyFtp(user);
-        
+        it('should connect server successful with current userInfo', async (done) => {
+            let successMockFn = jest.fn();
+            ftp.on('open', successMockFn);
+            await ftp.connect(user);
             expect(ftp).toBeInstanceOf(EasyFtp);
+            done();
+        });
+        it('should connect failed with error userInfo', async (done) => {
+            try {
+                await ftp.connect({});
+            } catch(e) {
+                expect(e.message).toEqual('connect failed');
+            };
             done();
         });
     });
 
     describe('show list', () => {
         it('should return list', async (done) => {
-            const res = await new Promise((resolve, reject) => {
-                ftp.lsAll(path, (err, list) => {
-                    if(err){
-                        return reject(err);
-                    }
-    
-                    resolve(list);
-                });
-            })
-        
-            expect(res).toBeInstanceOf(Array);
+            let successMockFn = jest.fn();
+
+            await ftp.lsAll('', successMockFn());
+            expect(successMockFn).toHaveBeenCalled();
             
             done();
         });
@@ -42,17 +41,19 @@ describe('Ftp server tests', () => {
 
     describe('delete file', () => {
         it('should delete successful with specified path', async (done) => {
-            const res = await new Promise((resolve, reject) => {
-                ftp.rm(path, (err) => {
-                    if(err){
-                        return reject(err);
-                    }
-    
-                    resolve(true);
-                });
-            });
-        
-            expect(res).toBe(true);
+            let successMockFn = jest.fn();
+
+            await ftp.rm('/xyx/111', successMockFn());
+            expect(successMockFn).toHaveBeenCalled();
+            
+            done();
+        });
+        it('delete failed with error path', async (done) => {
+            try {
+                await ftp.rm('xxx');
+            } catch(e) {
+                expect(e.message).toEqual('xxx no exists');
+            };
             
             done();
         });
@@ -60,17 +61,10 @@ describe('Ftp server tests', () => {
 
     describe('mkdir directory', () => {
         it('mkdir directory successful with specified path', async (done) => {
-            let res = await new Promise((resolve, reject) => {
-                ftp.mkdir(dir, (err) => {
-                    if(err){
-                        return reject(err);
-                    }
+            let successMockFn = jest.fn();
 
-                    resolve(true);
-                });
-            });
-        
-            expect(res).toBe(true);
+            await ftp.mkdir('/xyx/333', successMockFn());
+            expect(successMockFn).toHaveBeenCalled();
             
             done();
         });
@@ -78,17 +72,23 @@ describe('Ftp server tests', () => {
 
     describe('upload file', () => {
         it('upload file successful with specified path', async (done) => {
-            let res = await new Promise((resolve, reject) => {
-                ftp.upload(files, (err) => {
-                    if(err){
-                        return reject(err);
-                    }
-                    
-                    resolve(true);
-                });
-            });
-        
-            expect(res).toBe(true);
+            let successMockFn = jest.fn();
+
+            await ftp.upload([{
+                local: 'C:\\Users\\Administrator\\Desktop\\xyx\\2.jpg', 
+                remote: '/xyx'
+            }], successMockFn());
+            
+            expect(successMockFn).toHaveBeenCalled();
+            
+            done();
+        });
+        it('upload file with error path', async (done) => {
+            try {
+                await ftp.upload([{local: 'xxx', remote: '/xyx'}])
+            } catch(e) {
+                expect(e.message).toEqual('xxx no exists');
+            };
             
             done();
         });
