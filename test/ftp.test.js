@@ -8,25 +8,24 @@ describe('Ftp server tests', () => {
         password: 'Admin@123',
         remoteSystem: 'ftp'
     };
+    let ftp = null;
     const path = '/xyx/111';
     const dir = '/xyx/333';
-    const files = '/xyx/D:/xyx/111.jpg';
+    const files = [{local: 'C:\\Users\\Administrator\\Desktop\\xyx\\2.jpg', remote: '/xyx'}];
 
     describe('connect server', () => {
         it('should connect server successful', (done) => {
-            const response = new EasyFtp(user);
+            ftp = new EasyFtp(user);
         
-            expect(response).toBeInstanceOf(EasyFtp);
+            expect(ftp).toBeInstanceOf(EasyFtp);
             done();
         });
     });
 
     describe('show list', () => {
         it('should return list', async (done) => {
-            const ftp = new EasyFtp(user);
-            
             const res = await new Promise((resolve, reject) => {
-                ftp.lsAll('/', (err, list) => {
+                ftp.lsAll(path, (err, list) => {
                     if(err){
                         return reject(err);
                     }
@@ -43,10 +42,8 @@ describe('Ftp server tests', () => {
 
     describe('delete file', () => {
         it('should delete successful with specified path', async (done) => {
-            const ftp = new EasyFtp(user);
-            
             const res = await new Promise((resolve, reject) => {
-                ftp.lsAll(path, (err) => {
+                ftp.rm(path, (err) => {
                     if(err){
                         return reject(err);
                     }
@@ -63,8 +60,6 @@ describe('Ftp server tests', () => {
 
     describe('mkdir directory', () => {
         it('mkdir directory successful with specified path', async (done) => {
-            const ftp = new EasyFtp(user);
-            
             let res = await new Promise((resolve, reject) => {
                 ftp.mkdir(dir, (err) => {
                     if(err){
@@ -83,8 +78,6 @@ describe('Ftp server tests', () => {
 
     describe('upload file', () => {
         it('upload file successful with specified path', async (done) => {
-            const ftp = new EasyFtp(user);
-            
             let res = await new Promise((resolve, reject) => {
                 ftp.upload(files, (err) => {
                     if(err){

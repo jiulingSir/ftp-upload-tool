@@ -45,14 +45,12 @@ const __getGlobInfo = async ({ res }) => {
 };
 
 const __parseUpload = async ({ files, path }) => {
-    let files = opt.files.map(item => {
+    return files.map(item => {
         return {
             local: item,
             remote: path
         }
     });
-
-    return files;
 };
 
 const __addFileToOSSSync = async (data, dirPath) => {
